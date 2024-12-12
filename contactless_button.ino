@@ -62,24 +62,44 @@ struct {
 
 const int touchPin=4;
 const int calibratedPin=22;
+const int threshold= 1; //1 unit
+
+int touchValue;
+int calibratedValue;
 
 void setup() {
-  RemoteXY_Init (); 
-// put your setup code here, to run once:
   Serial.begin(115200);
-  pinMode(calibratedPin,INPUT);  
+  RemoteXY_Init (); 
+  pinMode(calibratedPin,INPUT); 
+// put your setup code here, to run once:
+
+ 
+  // Serial.println("Initial calibratedValue");
+  // Serial.println(calibratedValue);
+  // Serial.println("---------------");
 
 }
 
 void loop() {
   RemoteXY_Handler ();
   Serial.println(touchRead(touchPin));
-  Serial.println("Init");
 
   if(digitalRead(calibratedPin)==LOW){
-    Serial.println("Save Value");
-    delay(200);
+    calibratedValue=touchRead(touchPin);
+    // Serial.println("calibratedValue");
+    // Serial.println(calibratedValue);
+    // Serial.println("---------------");
+    delay(200); //debounce time
   }
-  delay(1000);
 
+  if (touchRead(touchPin)>=calibratedValue - threshold && touchRead(touchPin)<=calibratedValue + threshold){
+    RemoteXY.led = 1; // Enciende el LED virtual
+  }
+  else{
+    RemoteXY.led = 0; // Apagar el LED virtual
+  }
+  
+  delay(50);
+  
+  
 }

@@ -28,7 +28,7 @@
 // // RemoteXY select connection mode and include library 
 // #define REMOTEXY_MODE__ESP32CORE_BLE
 
-// #include <BLEDevice.h>
+// #include <BoutputPinevice.h>
 
 // // RemoteXY connection settings 
 // #define REMOTEXY_BLUETOOTH_NAME "RemoteXY"
@@ -46,7 +46,7 @@
 // struct {
 
 //     // output variables
-//   uint8_t led; // from 0 to 1
+//   uint8_t outputPin; // from 0 to 1
 
 //     // other variable
 //   uint8_t connect_flag = 0;  // =1 if wire connected, else =0
@@ -62,7 +62,7 @@
 
 const int touchPin=4;
 const int calibratedPin=22;
-const int led=15;
+const int outputPin=17;
 const int threshold= 1; //1 unit
 
 int touchValue;
@@ -72,7 +72,8 @@ void setup() {
   Serial.begin(115200);
   // RemoteXY_Init (); 
   pinMode(calibratedPin,INPUT); 
-  pinMode(led,OUTPUT);
+  pinMode(outputPin,OUTPUT);
+
 // put your setup code here, to run once:
 
  
@@ -88,19 +89,19 @@ void loop() {
 
   if(digitalRead(calibratedPin)==LOW){
     calibratedValue=touchRead(touchPin);
-    // Serial.println("calibratedValue");
-    // Serial.println(calibratedValue);
+    Serial.println("calibratedValue");
+    Serial.println(calibratedValue);
     // Serial.println("---------------");
     delay(200); //debounce time
   }
 
   if (touchRead(touchPin)>=calibratedValue - threshold && touchRead(touchPin)<=calibratedValue + threshold){
-    // RemoteXY.led = 1; // Enciende el LED virtual
-    digitalWrite(led,HIGH);
+    // RemoteXY.outputPin = 1; // Enciende el outputPin virtual
+    digitalWrite(outputPin,HIGH);
   }
   else{
-    // RemoteXY.led = 0; // Apagar el LED virtual
-    digitalWrite(led,LOW);
+    // RemoteXY.outputPin = 0; // Apagar el outputPin virtual
+    digitalWrite(outputPin,LOW);
   }
   
   delay(200);

@@ -23,26 +23,26 @@
 //////////////////////////////////////////////
 
 // you can enable debug logging to Serial at 115200
-//#define REMOTEXY__DEBUGLOG    
+//#define REMOTEXY__DEBUGLOG
 
-// // RemoteXY select connection mode and include library 
+// // RemoteXY select connection mode and include library
 // #define REMOTEXY_MODE__ESP32CORE_BLE
 
 // #include <BoutputPinevice.h>
 
-// // RemoteXY connection settings 
+// // RemoteXY connection settings
 // #define REMOTEXY_BLUETOOTH_NAME "RemoteXY"
 
 
 // #include <RemoteXY.h>
 
-// // RemoteXY GUI configuration  
-// #pragma pack(push, 1)  
+// // RemoteXY GUI configuration
+// #pragma pack(push, 1)
 // uint8_t RemoteXY_CONF[] =   // 32 bytes
 //   { 255,0,0,1,0,25,0,19,0,0,0,108,101,100,0,31,1,106,200,1,
 //   1,1,0,70,41,48,18,18,16,26,37,0 };
-  
-// // this structure defines all the variables and events of your control interface 
+
+// // this structure defines all the variables and events of your control interface
 // struct {
 
 //     // output variables
@@ -51,60 +51,85 @@
 //     // other variable
 //   uint8_t connect_flag = 0;  // =1 if wire connected, else =0
 
-// } RemoteXY;   
+// } RemoteXY;
 // #pragma pack(pop)
- 
+
 /////////////////////////////////////////////
 //           END RemoteXY include          //
 /////////////////////////////////////////////
 
 #include <driver/touch_pad.h>
 
-const int touchPin=4;
-const int calibratedPin=22;
-const int outputPin=17;
-const int threshold= 1; //1 unit
+const int touchPin = 4;
+const int calibratedPin = 22;
+const int outputPin = 17;
+const int latchPin = 16;
+const int threshold = 1;  //1 unit
 
 int touchValue;
 int calibratedValue;
+bool latchMode;
 
 void setup() {
   Serial.begin(115200);
-  // RemoteXY_Init (); 
-  pinMode(calibratedPin,INPUT); 
-  pinMode(outputPin,OUTPUT);
+  // RemoteXY_Init ();
+  pinMode(calibratedPin, INPUT);
+  pinMode(outputPin, OUTPUT);
+  pinMode(latchPin, INPUT);
+  pinMode(latchPin, INPUT);
+  latchMode=false;
 
-// put your setup code here, to run once:
 
- 
+  // put your setup code here, to run once:
+
+
   // Serial.println("Initial calibratedValue");
   // Serial.println(calibratedValue);
   // Serial.println("---------------");
-
 }
 
 void loop() {
   // RemoteXY_Handler ();
   Serial.println(touchRead(touchPin));
 
-  if(digitalRead(calibratedPin)==LOW){
-    calibratedValue=touchRead(touchPin);
+  if (digitalRead(calibratedPin) == LOW) {
+    calibratedValue = touchRead(touchPin);
     Serial.println("calibratedValue");
     Serial.println(calibratedValue);
     // Serial.println("---------------");
-    delay(200); //debounce time
+    delay(200);  //debounce time
   }
 
-  if (touchRead(touchPin)>=calibratedValue - threshold && touchRead(touchPin)<=calibratedValue + threshold){
+    if (digitalRead(latchPin) == LOW) {
+      latchMode=!latchMode;
+    // Serial.println("---------------");
+      delay(200);  //debounce time
+  }
+
+  if (touchRead(touchPin) >= calibratedValue - threshold && touchRead(touchPin) <= calibratedValue + threshold) {
     // RemoteXY.outputPin = 1; // Enciende el outputPin virtual
-    digitalWrite(outputPin,HIGH);
+    if (latchMode==false){
+      digitalWrite(outputPin, HIGH);
+      delay(1000);
+      digitalWrite(outputPin, LOW);
+    }
+    else{
+      bool state=digitalRead(outputPin);
+      digitalWrite(outputPin,!state);
+      if (digitalRead(outputPin)==HIGH){
+        Serial.println("ON");
+      }
+      else{
+        Serial.println("OFF");
+      }
+      delay(1000);  //debounce time
+    }
   }
-  else{
-    // RemoteXY.outputPin = 0; // Apagar el outputPin virtual
-    digitalWrite(outputPin,LOW);
-  }
-  
+  //   digitalWrite(outputPin, HIGH);
+  // } else {
+  //   // RemoteXY.outputPin = 0; // Apagar el outputPin virtual
+  //   digitalWrite(outputPin, LOW);
+  // }
+
   delay(200);
-  
-  
 }
